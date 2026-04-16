@@ -1,0 +1,10 @@
+{
+  "name": "totallins-auth",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Totallins shared authentication service for Hub and Card",
+  "scripts": {
+    "start": "netlify dev",
+    "dev": "netlify dev"
+  }
+}
