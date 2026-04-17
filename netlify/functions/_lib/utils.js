@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
 const DEFAULT_COOKIE_NAME = 'totallins_auth_session';
+const DEFAULT_CARD_PUBLIC_BASE_URL = 'https://card.babymusic.co.kr';
 
 function getEnv(name, fallback = '') {
   return process.env[name] || fallback;
@@ -24,11 +25,7 @@ function getOrigin(headers) {
 
 function buildCorsHeaders(origin) {
   const allowedOrigins = getAllowedOrigins();
-  if (!origin) {
-    return {
-      Vary: 'Origin',
-    };
-  }
+  if (!origin) return { Vary: 'Origin' };
 
   if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
     return {
@@ -40,9 +37,7 @@ function buildCorsHeaders(origin) {
     };
   }
 
-  return {
-    Vary: 'Origin',
-  };
+  return { Vary: 'Origin' };
 }
 
 function json(statusCode, payload, headers = {}, origin = '') {
@@ -198,6 +193,35 @@ async function supabaseRequest(path, options = {}) {
   return data;
 }
 
+async function insertRow(table, payload) {
+  return supabaseRequest(table, {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: payload,
+  });
+}
+
+async function updateRow(table, matchField, matchValue, patch) {
+  return supabaseRequest(table, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=representation' },
+    searchParams: {
+      [matchField]: `eq.${matchValue}`,
+      select: '*',
+    },
+    body: patch,
+  });
+}
+
+async function listRows(table, searchParams = {}, select = '*') {
+  return supabaseRequest(table, {
+    searchParams: {
+      select,
+      ...searchParams,
+    },
+  });
+}
+
 async function getEmployeeByEmployeeNo(employeeNo) {
   const rows = await supabaseRequest('employees', {
     searchParams: {
@@ -213,7 +237,7 @@ async function getEmployeeById(id) {
   const rows = await supabaseRequest('employees', {
     searchParams: {
       id: `eq.${id}`,
-      select: 'id,employee_no,name,team_name,role_code,is_active,activation_status,must_change_password,activated_at',
+      select: 'id,employee_no,name,team_name,role_code,is_active,activation_status,must_change_password,activated_at,last_login_at,created_at',
       limit: '1',
     },
   });
@@ -236,23 +260,56 @@ async function getSessionByToken(rawToken) {
   return Array.isArray(rows) && rows[0] ? rows[0] : null;
 }
 
-async function updateRow(table, matchField, matchValue, patch) {
-  return supabaseRequest(table, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=representation' },
-    searchParams: {
-      [matchField]: `eq.${matchValue}`,
-      select: '*',
-    },
-    body: patch,
-  });
+function limitString(value, maxLength) {
+  return String(value == null ? '' : value).slice(0, maxLength);
 }
 
-async function insertRow(table, payload) {
-  return supabaseRequest(table, {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: payload,
+function getRequestPathFromEvent(event) {
+  if (!event) return '';
+  if (event.path) return String(event.path);
+  if (event.rawUrl) {
+    try {
+      return new URL(event.rawUrl).pathname;
+    } catch (error) {
+      return String(event.rawUrl);
+    }
+  }
+  return '';
+}
+
+async function logEvent(payload) {
+  try {
+    const level = ['debug', 'info', 'warn', 'error'].includes(payload?.level) ? payload.level : 'info';
+    const source = ['server', 'client'].includes(payload?.source) ? payload.source : 'server';
+    const metadata = payload?.metadata && typeof payload.metadata === 'object' ? payload.metadata : {};
+
+    await insertRow('app_event_logs', {
+      level,
+      source,
+      event_key: limitString(payload?.eventKey || 'app_event', 120),
+      message: limitString(payload?.message || '', 1000) || null,
+      request_path: limitString(payload?.requestPath || '', 255) || null,
+      method: limitString(payload?.method || '', 32) || null,
+      employee_id: payload?.employeeId || null,
+      card_id: payload?.cardId || null,
+      slug: limitString(payload?.slug || '', 64) || null,
+      metadata,
+    });
+  } catch (error) {
+    console.error('[logEvent] failed', {
+      status: error?.status,
+      message: error?.message,
+      payload: error?.payload,
+    });
+  }
+}
+
+async function logServerEvent(event, payload = {}) {
+  return logEvent({
+    source: 'server',
+    requestPath: payload.requestPath || getRequestPathFromEvent(event),
+    method: payload.method || (event && event.httpMethod) || null,
+    ...payload,
   });
 }
 
@@ -260,15 +317,49 @@ function normalizeName(value) {
   return String(value || '').replace(/\s+/g, '').trim().toLowerCase();
 }
 
-function getHeaderValue(headers, name) {
-  if (!headers || typeof headers !== 'object') return '';
-  const target = String(name || '').toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (String(key).toLowerCase() === target) {
-      return Array.isArray(value) ? String(value[0] || '') : String(value || '');
-    }
+function normalizeTeamName(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function normalizeRoleCode(value, fallback = 'employee') {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text) return fallback;
+  if (['developer', '개발자'].includes(text)) return 'developer';
+  if (['admin', '관리자'].includes(text)) return 'admin';
+  if (['manager', '매니저'].includes(text)) return 'manager';
+  return 'employee';
+}
+
+function parseBooleanLike(value, fallback = null) {
+  if (value == null || value === '') return fallback;
+  const text = String(value).trim().toLowerCase();
+  if (['y', 'yes', 'true', '1', '활성', '예'].includes(text)) return true;
+  if (['n', 'no', 'false', '0', '비활성', '아니오'].includes(text)) return false;
+  return fallback;
+}
+
+function generateTempPassword(length = 8) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let output = '';
+  for (let i = 0; i < length; i += 1) {
+    const idx = crypto.randomInt(0, chars.length);
+    output += chars[idx];
   }
-  return '';
+  return output;
+}
+
+function isDeveloperRole(roleCode) {
+  return String(roleCode || '').toLowerCase() === 'developer';
+}
+
+function isAdminRole(roleCode) {
+  const value = String(roleCode || '').toLowerCase();
+  return value === 'admin' || value === 'developer';
+}
+
+function isManagerOrAdminRole(roleCode) {
+  const value = String(roleCode || '').toLowerCase();
+  return value === 'developer' || value === 'admin' || value === 'manager';
 }
 
 async function requireAuth(event) {
@@ -298,6 +389,51 @@ async function requireAuth(event) {
   };
 }
 
+async function requireManagerOrAdmin(event) {
+  const auth = await requireAuth(event);
+  if (!auth.authenticated) return { authenticated: false };
+  if (!isManagerOrAdminRole(auth.employee.role_code)) {
+    return { authenticated: true, authorized: false, employee: auth.employee, session: auth.session };
+  }
+  return { authenticated: true, authorized: true, employee: auth.employee, session: auth.session };
+}
+
+async function requireAdmin(event) {
+  const auth = await requireAuth(event);
+  if (!auth.authenticated) return { authenticated: false };
+  if (!isAdminRole(auth.employee.role_code)) {
+    return { authenticated: true, authorized: false, employee: auth.employee, session: auth.session };
+  }
+  return { authenticated: true, authorized: true, employee: auth.employee, session: auth.session };
+}
+
+async function requireDeveloper(event) {
+  const auth = await requireAuth(event);
+  if (!auth.authenticated) return { authenticated: false };
+  if (!isDeveloperRole(auth.employee.role_code)) {
+    return { authenticated: true, authorized: false, employee: auth.employee, session: auth.session };
+  }
+  return { authenticated: true, authorized: true, employee: auth.employee, session: auth.session };
+}
+
+function buildPublicUrlAbsolute(slug) {
+  const safeSlug = String(slug || '').trim();
+  if (!safeSlug) return '';
+  const siteUrl = String(getEnv('CARD_PUBLIC_BASE_URL', DEFAULT_CARD_PUBLIC_BASE_URL)).trim().replace(/\/$/, '');
+  return `${siteUrl}/u/${safeSlug}`;
+}
+
+function getHeaderValue(headers, name) {
+  if (!headers || typeof headers !== 'object') return '';
+  const target = String(name || '').toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (String(key).toLowerCase() === target) {
+      return Array.isArray(value) ? String(value[0] || '') : String(value || '');
+    }
+  }
+  return '';
+}
+
 module.exports = {
   ok,
   fail,
@@ -313,12 +449,25 @@ module.exports = {
   hashPassword,
   verifyPassword,
   supabaseRequest,
+  insertRow,
+  updateRow,
+  listRows,
   getEmployeeByEmployeeNo,
   getEmployeeById,
   getSessionByToken,
-  updateRow,
-  insertRow,
+  logServerEvent,
   normalizeName,
-  getHeaderValue,
+  normalizeTeamName,
+  normalizeRoleCode,
+  parseBooleanLike,
+  generateTempPassword,
+  isDeveloperRole,
+  isAdminRole,
+  isManagerOrAdminRole,
   requireAuth,
+  requireManagerOrAdmin,
+  requireAdmin,
+  requireDeveloper,
+  buildPublicUrlAbsolute,
+  getHeaderValue,
 };

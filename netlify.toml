@@ -26,3 +26,33 @@
   from = "/api/health"
   to = "/.netlify/functions/health"
   status = 200
+
+[[redirects]]
+  from = "/api/admin/dashboard"
+  to = "/.netlify/functions/admin-dashboard"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/employee-import"
+  to = "/.netlify/functions/admin-employee-import"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/employee-reset-password"
+  to = "/.netlify/functions/admin-employee-reset-password"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/employee-active"
+  to = "/.netlify/functions/admin-employee-active"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/employee-update"
+  to = "/.netlify/functions/admin-employee-update"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/employee-delete"
+  to = "/.netlify/functions/admin-employee-delete"
+  status = 200

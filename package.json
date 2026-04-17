@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "description": "Totallins shared authentication service for Hub and Card",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
   "scripts": {
     "start": "netlify dev",
     "dev": "netlify dev"
