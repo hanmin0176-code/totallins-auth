@@ -57,8 +57,12 @@ function ok(data, headers = {}, origin = '') {
   return json(200, { ok: true, data }, headers, origin);
 }
 
-function fail(statusCode, code, message, origin = '') {
-  return json(statusCode, { ok: false, error: { code, message } }, {}, origin);
+function fail(statusCode, code, message, origin = '', data) {
+  const payload = { ok: false, error: { code, message } };
+  if (typeof data !== 'undefined') {
+    payload.data = data;
+  }
+  return json(statusCode, payload, {}, origin);
 }
 
 function handleOptions(event) {

@@ -7,6 +7,7 @@ Totallins shared authentication service.
 - Shared login for `totallins-hub` and `totallins-card`
 - Session cookie issuance and validation
 - Initial account activation flow
+- Operations center UI at `/admin/`
 - Shared `/api/auth/*` endpoints for Netlify deployments
 
 ## Endpoints
@@ -15,6 +16,12 @@ Totallins shared authentication service.
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
 - `POST /api/auth/activate`
+- `GET /api/admin/dashboard`
+- `POST /api/admin/employee-import`
+- `POST /api/admin/employee-reset-password`
+- `POST /api/admin/employee-active`
+- `POST /api/admin/employee-update`
+- `POST /api/admin/employee-delete`
 - `GET /api/health`
 
 ## Required Netlify Environment Variables
@@ -25,12 +32,12 @@ Totallins shared authentication service.
   - Example: `totallins_auth_session`
 - `SESSION_COOKIE_DOMAIN`
   - Leave empty for temporary `*.netlify.app`
-  - Use `.totallins.com` after custom domain setup
+  - Use `.babymusic.co.kr` after custom domain setup
 - `SESSION_TTL_DAYS`
   - Example: `7`
 - `AUTH_ALLOWED_ORIGINS`
   - Comma-separated list
-  - Example: `https://hub-totallins.netlify.app,https://card-totallins.netlify.app`
+  - Example: `https://hub.babymusic.co.kr,https://card.babymusic.co.kr`
 
 ## Supabase Tables Used
 
@@ -52,17 +59,13 @@ This service assumes the existing schema already contains:
 4. Deploy.
 5. Check `GET /api/health`.
 
-## Temporary Deployment Strategy
+## Current Domains
 
-Before buying a custom domain, use:
+- `https://auth.babymusic.co.kr`
+- `https://hub.babymusic.co.kr`
+- `https://card.babymusic.co.kr`
 
-- `https://auth-totallins.netlify.app`
+Current production settings:
 
-Later, after you buy `totallins.com`, move to:
-
-- `https://auth.totallins.com`
-
-At that point, set:
-
-- `SESSION_COOKIE_DOMAIN=.totallins.com`
-- `AUTH_ALLOWED_ORIGINS=https://hub.totallins.com,https://card.totallins.com`
+- `SESSION_COOKIE_DOMAIN=.babymusic.co.kr`
+- `AUTH_ALLOWED_ORIGINS=https://hub.babymusic.co.kr,https://card.babymusic.co.kr`

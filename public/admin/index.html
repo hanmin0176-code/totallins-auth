@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Totallins Auth Admin</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --text: #10233d;
+        --muted: #60758f;
+        --line: #d8e2ef;
+        --accent: #0b6ef3;
+        --accent-dark: #0958c5;
+        --danger: #c84545;
+        --success: #18895a;
+        --warn: #a46813;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #ffffff 0%, var(--bg) 72%);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+      }
+
+      .topbar,
+      .section-head,
+      .filters,
+      .table-actions,
+      .form-row,
+      .button-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .topbar {
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .topbar a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(16, 35, 61, 0.08);
+        padding: 24px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .two-up {
+        grid-template-columns: 1.35fr 1fr;
+      }
+
+      .summary-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        background: #fbfdff;
+      }
+
+      .summary-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .summary-card strong {
+        font-size: 28px;
+      }
+
+      .muted { color: var(--muted); }
+
+      h1, h2, h3 { margin: 0; }
+
+      p {
+        margin: 0;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        flex: 1 1 180px;
+      }
+
+      label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fff;
+      }
+
+      button,
+      .btn-link {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .primary:hover { background: var(--accent-dark); }
+
+      .secondary {
+        background: #eef4fb;
+        color: var(--text);
+      }
+
+      .danger {
+        background: #fff1f1;
+        color: var(--danger);
+      }
+
+      .message {
+        border-radius: 16px;
+        padding: 14px 16px;
+        display: none;
+      }
+
+      .message.show { display: block; }
+      .message.error { background: #fff1f1; color: var(--danger); }
+      .message.success { background: #eefaf5; color: var(--success); }
+      .message.info { background: #eef4fb; color: var(--text); }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tag.good { background: #eefaf5; color: var(--success); }
+      .tag.warn { background: #fff5e6; color: var(--warn); }
+      .tag.muted { background: #eef4fb; color: var(--muted); }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th, td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+
+      .table-wrap {
+        overflow: auto;
+      }
+
+      .table-actions button {
+        padding: 8px 11px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+
+      .login-box {
+        max-width: 480px;
+        margin: 48px auto 0;
+      }
+
+      .empty {
+        padding: 20px;
+        border: 1px dashed var(--line);
+        border-radius: 18px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      code {
+        background: #eef4fb;
+        padding: 2px 8px;
+        border-radius: 999px;
+        color: var(--accent);
+      }
+
+      ul.log-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      ul.log-list li {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+        background: #fbfdff;
+      }
+
+      @media (max-width: 860px) {
+        .two-up {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="topbar">
+        <a href="https://hub.babymusic.co.kr/">허브로 돌아가기</a>
+        <div class="button-row">
+          <a class="btn-link secondary" href="/activate/">초기 활성화</a>
+          <button id="logoutButton" class="secondary" type="button" hidden>로그아웃</button>
+        </div>
+      </div>
+
+      <div id="app" class="stack"></div>
+    </main>
+
+    <script>
+      const AUTH_LOGIN_URL = '/api/auth/login';
+      const AUTH_LOGOUT_URL = '/api/auth/logout';
+      const AUTH_ME_URL = '/api/auth/me';
+      const DASHBOARD_URL = '/api/admin/dashboard';
+      const IMPORT_URL = '/api/admin/employee-import';
+      const RESET_URL = '/api/admin/employee-reset-password';
+      const ACTIVE_URL = '/api/admin/employee-active';
+      const UPDATE_URL = '/api/admin/employee-update';
+      const DELETE_URL = '/api/admin/employee-delete';
+      const HUB_URL = 'https://hub.babymusic.co.kr/';
+      const ACTIVATE_URL = 'https://auth.babymusic.co.kr/activate/';
+      const state = {
+        me: null,
+        dashboard: null,
+        query: '',
+        page: 1,
+        pageSize: 10,
+      };
+
+      document.addEventListener('DOMContentLoaded', init);
+
+      async function init() {
+        bindTopbar();
+        const me = await api(AUTH_ME_URL);
+        if (!me.ok || !me.data.authenticated || !me.data.employee) {
+          renderLogin();
+          return;
+        }
+
+        state.me = me.data.employee;
+        if (!['manager', 'admin', 'developer'].includes(String(state.me.roleCode || '').toLowerCase())) {
+          renderForbidden();
+          return;
+        }
+
+        document.getElementById('logoutButton').hidden = false;
+        await loadDashboard();
+      }
+
+      function bindTopbar() {
+        const logoutButton = document.getElementById('logoutButton');
+        logoutButton.addEventListener('click', async () => {
+          await api(AUTH_LOGOUT_URL, { method: 'POST' });
+          window.location.href = HUB_URL;
+        });
+      }
+
+      function renderLogin(message) {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+          <section class="panel login-box stack">
+            <div class="stack">
+              <h1>운영센터 로그인</h1>
+              <p>공통 인증 계정으로 로그인하면 계정 등록, 활성화, 권한 관리를 이곳에서 처리할 수 있습니다.</p>
+            </div>
+            <div id="message" class="message ${message ? 'show error' : ''}">${escapeHtml(message || '')}</div>
+            <form id="loginForm" class="stack">
+              <div class="field">
+                <label for="employeeNo">사번</label>
+                <input id="employeeNo" name="employeeNo" autocomplete="username" placeholder="예: TOT001233006" />
+              </div>
+              <div class="field">
+                <label for="password">비밀번호</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" />
+              </div>
+              <div class="button-row">
+                <button class="primary" type="submit">로그인</button>
+                <a class="btn-link secondary" href="${HUB_URL}login">허브 로그인</a>
+              </div>
+            </form>
+          </section>
+        `;
+
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const employeeNo = document.getElementById('employeeNo').value.trim();
+          const password = document.getElementById('password').value;
+          if (!employeeNo || !password) return;
+
+          const result = await api(AUTH_LOGIN_URL, {
+            method: 'POST',
+            body: { employeeNo, password },
+          });
+
+          if (!result.ok) {
+            if (result.error && result.error.code === 'ACCOUNT_SETUP_REQUIRED') {
+              window.location.href = buildActivationUrl(result.data || { employeeNo });
+              return;
+            }
+            renderLogin(result.error?.message || '로그인에 실패했습니다.');
+            return;
+          }
+
+          window.location.reload();
+        });
+      }
+
+      function renderForbidden() {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+          <section class="panel stack">
+            <h1>접근 권한이 없습니다</h1>
+            <p>운영센터는 manager, admin, developer 권한만 사용할 수 있습니다.</p>
+            <div class="button-row">
+              <a class="btn-link primary" href="${HUB_URL}">허브로 이동</a>
+              <a class="btn-link secondary" href="https://card.babymusic.co.kr/manage/">명함 관리로 이동</a>
+            </div>
+          </section>
+        `;
+      }
+
+      async function loadDashboard(message, tone = 'info') {
+        const app = document.getElementById('app');
+        app.innerHTML = `<section class="panel"><p>운영 데이터를 불러오는 중입니다...</p></section>`;
+
+        const params = new URLSearchParams({
+          page: String(state.page),
+          pageSize: String(state.pageSize),
+          sortBy: 'employeeNo',
+          sortOrder: 'asc',
+        });
+        if (state.query) {
+          params.set('query', state.query);
+        }
+
+        const result = await api(`${DASHBOARD_URL}?${params.toString()}`);
+        if (!result.ok) {
+          app.innerHTML = `
+            <section class="panel stack">
+              <h1>운영 데이터를 불러오지 못했습니다</h1>
+              <p>${escapeHtml(result.error?.message || '다시 시도해 주세요.')}</p>
+              <div class="button-row">
+                <button class="primary" type="button" id="retryButton">다시 불러오기</button>
+              </div>
+            </section>
+          `;
+          document.getElementById('retryButton').addEventListener('click', () => loadDashboard());
+          return;
+        }
+
+        state.dashboard = result.data;
+        renderDashboard(message, tone);
+      }
+
+      function renderDashboard(message, tone) {
+        const { summary, employees, recentLogs, viewer, pagination } = state.dashboard;
+        const app = document.getElementById('app');
+        app.innerHTML = `
+          <section class="panel stack">
+            <div class="section-head">
+              <div class="stack">
+                <h1>Auth 운영센터</h1>
+                <p>계정 등록, 팀 범위 조회, 임시 비밀번호 재발급, 활성/비활성, 권한 수정을 auth 기준으로 관리합니다.</p>
+              </div>
+              <span class="tag muted">${escapeHtml(viewer.roleCode)} / ${escapeHtml(viewer.teamName || 'all')}</span>
+            </div>
+            <div id="pageMessage" class="message ${message ? `show ${tone || 'info'}` : ''}">${escapeHtml(message || '')}</div>
+            <div class="grid summary-grid">
+              ${summaryCard('전체 계정', summary.totalEmployees)}
+              ${summaryCard('활성 계정', summary.activeEmployees)}
+              ${summaryCard('초기 활성화 대기', summary.pendingEmployees)}
+              ${summaryCard('비활성 계정', summary.inactiveEmployees)}
+              ${summaryCard('공개 명함', summary.publishedCards)}
+              ${summaryCard('최근 경고', summary.recentWarnings)}
+            </div>
+          </section>
+
+          <section class="grid two-up">
+            <div class="panel stack">
+              <div class="section-head">
+                <div class="stack">
+                  <h2>계정 목록</h2>
+                  <p>manager는 자기 팀 employee만 관리할 수 있고, admin/developer는 전체 계정을 관리할 수 있습니다.</p>
+                </div>
+                <div class="filters">
+                  <input id="queryInput" value="${escapeAttribute(state.query)}" placeholder="이름, 사번, 팀명 검색" />
+                  <button id="searchButton" class="secondary" type="button">검색</button>
+                  <button id="refreshButton" class="secondary" type="button">새로고침</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                ${employees && employees.length ? tableTemplate(employees) : '<div class="empty">조회된 계정이 없습니다.</div>'}
+              </div>
+              <div class="section-head">
+                <p>페이지 ${pagination.page} / ${pagination.totalPages}</p>
+                <div class="button-row">
+                  <button id="prevPageButton" class="secondary" type="button" ${pagination.hasPrev ? '' : 'disabled'}>이전</button>
+                  <button id="nextPageButton" class="secondary" type="button" ${pagination.hasNext ? '' : 'disabled'}>다음</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="stack">
+              <section class="panel stack">
+                <div class="section-head">
+                  <div class="stack">
+                    <h2>엑셀 일괄 등록</h2>
+                    <p>엑셀로 사번을 선등록하면, 최초 활성화는 auth 활성화 페이지에서 마무리합니다.</p>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="importFile">업로드 파일</label>
+                  <input id="importFile" type="file" accept=".xlsx,.xls,.csv" />
+                </div>
+                <div class="button-row">
+                  <button id="importButton" class="primary" type="button">업로드 실행</button>
+                  <a class="btn-link secondary" href="/activate/">초기 활성화 페이지 열기</a>
+                </div>
+                <div id="importResult" class="stack"></div>
+              </section>
+
+              <section class="panel stack">
+                <div class="section-head">
+                  <div class="stack">
+                    <h2>최근 경고 로그</h2>
+                    <p>권한 변경, 비밀번호 재발급, 예외 상황을 빠르게 확인할 수 있습니다.</p>
+                  </div>
+                </div>
+                ${recentLogs && recentLogs.length ? logTemplate(recentLogs) : '<div class="empty">최근 경고 로그가 없습니다.</div>'}
+              </section>
+            </div>
+          </section>
+        `;
+
+        bindDashboardEvents();
+        bindEmployeeActions(employees || []);
+      }
+
+      function bindDashboardEvents() {
+        document.getElementById('searchButton').addEventListener('click', () => {
+          state.query = document.getElementById('queryInput').value.trim();
+          state.page = 1;
+          loadDashboard();
+        });
+
+        document.getElementById('refreshButton').addEventListener('click', () => loadDashboard());
+        document.getElementById('prevPageButton').addEventListener('click', () => {
+          state.page = Math.max(1, state.page - 1);
+          loadDashboard();
+        });
+        document.getElementById('nextPageButton').addEventListener('click', () => {
+          state.page += 1;
+          loadDashboard();
+        });
+
+        document.getElementById('importButton').addEventListener('click', handleImport);
+      }
+
+      function bindEmployeeActions(employees) {
+        document.querySelectorAll('[data-action]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const action = button.dataset.action;
+            const employeeId = button.dataset.employeeId;
+            const employee = employees.find((item) => item.id === employeeId);
+            if (!employee) return;
+
+            if (action === 'toggle') {
+              await toggleActive(employee);
+              return;
+            }
+            if (action === 'reset') {
+              await resetPassword(employee);
+              return;
+            }
+            if (action === 'edit') {
+              await editEmployee(employee);
+              return;
+            }
+            if (action === 'delete') {
+              await deleteEmployee(employee);
+            }
+          });
+        });
+      }
+
+      async function handleImport() {
+        const input = document.getElementById('importFile');
+        const file = input.files && input.files[0];
+        if (!file) {
+          showImportResult('<div class="message show error">업로드할 엑셀 파일을 먼저 선택해 주세요.</div>');
+          return;
+        }
+
+        const fileBase64 = await fileToBase64(file);
+        const result = await api(IMPORT_URL, {
+          method: 'POST',
+          body: { fileBase64 },
+        });
+
+        if (!result.ok) {
+          showImportResult(`<div class="message show error">${escapeHtml(result.error?.message || '엑셀 업로드에 실패했습니다.')}</div>`);
+          return;
+        }
+
+        const data = result.data.result;
+        const credentials = Array.isArray(data.generatedCredentials) ? data.generatedCredentials : [];
+        const errors = Array.isArray(data.errors) ? data.errors : [];
+        showImportResult(`
+          <div class="message show success">
+            created ${data.created || 0}, updated ${data.updated || 0}, pending ${data.pendingPrepared || 0}, skipped ${data.skipped || 0}
+          </div>
+          ${credentials.length ? `
+            <div class="panel" style="padding:16px;border-radius:18px;">
+              <h3 style="margin-bottom:8px;">임시 비밀번호 발급 결과</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>사번</th><th>이름</th><th>임시 비밀번호</th><th>구분</th></tr>
+                  </thead>
+                  <tbody>
+                    ${credentials.map((row) => `
+                      <tr>
+                        <td>${escapeHtml(row.employeeNo)}</td>
+                        <td>${escapeHtml(row.name)}</td>
+                        <td><code>${escapeHtml(row.tempPassword)}</code></td>
+                        <td>${escapeHtml(row.action)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ` : ''}
+          ${errors.length ? `
+            <div class="message show error">
+              ${errors.map((item) => escapeHtml(`${item.rowNumber}행 / ${item.employeeNo || '-'} / ${item.reason}`)).join('<br />')}
+            </div>
+          ` : ''}
+        `);
+        input.value = '';
+        await loadDashboard('엑셀 업로드가 완료되었습니다.', 'success');
+      }
+
+      async function toggleActive(employee) {
+        const nextActive = !employee.isActive;
+        const result = await api(ACTIVE_URL, {
+          method: 'POST',
+          body: { employeeId: employee.id, isActive: nextActive },
+        });
+        if (!result.ok) {
+          await loadDashboard(result.error?.message || '계정 상태 변경에 실패했습니다.', 'error');
+          return;
+        }
+        await loadDashboard(`${employee.name} 계정을 ${nextActive ? '활성화' : '비활성화'}했습니다.`, 'success');
+      }
+
+      async function resetPassword(employee) {
+        const tempPassword = window.prompt(`${employee.name} 계정에 지정할 임시 비밀번호를 입력하세요.\n비워두면 자동 생성합니다.`, '');
+        if (tempPassword === null) return;
+
+        const result = await api(RESET_URL, {
+          method: 'POST',
+          body: {
+            employeeId: employee.id,
+            tempPassword: tempPassword.trim(),
+          },
+        });
+        if (!result.ok) {
+          await loadDashboard(result.error?.message || '임시 비밀번호 재발급에 실패했습니다.', 'error');
+          return;
+        }
+
+        const issued = result.data.tempPassword;
+        await navigator.clipboard.writeText(issued).catch(() => null);
+        await loadDashboard(`${employee.name} 임시 비밀번호를 재발급했습니다. (${issued})`, 'success');
+      }
+
+      async function editEmployee(employee) {
+        const teamName = window.prompt(`${employee.name} 계정의 팀명을 입력하세요.`, employee.teamName || '');
+        if (teamName === null) return;
+        const roleCode = window.prompt(`${employee.name} 계정의 권한을 입력하세요.\nemployee / manager / admin / developer`, employee.roleCode || 'employee');
+        if (roleCode === null) return;
+
+        const result = await api(UPDATE_URL, {
+          method: 'POST',
+          body: {
+            employeeId: employee.id,
+            teamName: teamName.trim(),
+            roleCode: roleCode.trim(),
+          },
+        });
+        if (!result.ok) {
+          await loadDashboard(result.error?.message || '계정 수정에 실패했습니다.', 'error');
+          return;
+        }
+        await loadDashboard(`${employee.name} 계정 정보를 수정했습니다.`, 'success');
+      }
+
+      async function deleteEmployee(employee) {
+        const confirmed = window.confirm(`${employee.name} 계정을 삭제하시겠습니까?\n비활성 상태에서만 삭제할 수 있습니다.`);
+        if (!confirmed) return;
+        const result = await api(DELETE_URL, {
+          method: 'POST',
+          body: { employeeId: employee.id },
+        });
+        if (!result.ok) {
+          await loadDashboard(result.error?.message || '계정 삭제에 실패했습니다.', 'error');
+          return;
+        }
+        await loadDashboard(`${employee.name} 계정을 삭제했습니다.`, 'success');
+      }
+
+      function buildActivationUrl(data) {
+        const url = new URL(ACTIVATE_URL);
+        url.searchParams.set('returnTo', `${HUB_URL}login`);
+        if (data && data.employeeNo) {
+          url.searchParams.set('employeeNo', data.employeeNo);
+        }
+        if (data && data.name) {
+          url.searchParams.set('name', data.name);
+        }
+        return url.toString();
+      }
+
+      function summaryCard(label, value) {
+        return `
+          <div class="summary-card">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(String(value))}</strong>
+          </div>
+        `;
+      }
+
+      function tableTemplate(rows) {
+        return `
+          <table>
+            <thead>
+              <tr>
+                <th>사번</th>
+                <th>이름</th>
+                <th>팀</th>
+                <th>권한</th>
+                <th>계정</th>
+                <th>명함</th>
+                <th>동작</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td>${escapeHtml(row.employeeNo)}</td>
+                  <td>${escapeHtml(row.name)}</td>
+                  <td>${escapeHtml(row.teamName || '-')}</td>
+                  <td>${roleTag(row.roleCode)}</td>
+                  <td>${accountTag(row)}</td>
+                  <td>${cardTag(row)}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="secondary" type="button" data-action="toggle" data-employee-id="${escapeAttribute(row.id)}">${row.isActive ? '비활성' : '활성화'}</button>
+                      <button class="secondary" type="button" data-action="reset" data-employee-id="${escapeAttribute(row.id)}">임시 비밀번호</button>
+                      <button class="secondary" type="button" data-action="edit" data-employee-id="${escapeAttribute(row.id)}">권한/팀 수정</button>
+                      <button class="danger" type="button" data-action="delete" data-employee-id="${escapeAttribute(row.id)}">삭제</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function logTemplate(rows) {
+        return `
+          <ul class="log-list">
+            ${rows.map((row) => `
+              <li>
+                <div class="section-head">
+                  <strong>${escapeHtml(row.message || row.event_key || '로그')}</strong>
+                  <span class="tag ${row.level === 'error' ? 'warn' : 'muted'}">${escapeHtml(row.level || 'info')}</span>
+                </div>
+                <p>${escapeHtml(row.event_key || '')}</p>
+                <p>${escapeHtml(formatDate(row.created_at))}</p>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      }
+
+      function roleTag(roleCode) {
+        const value = String(roleCode || '').toLowerCase();
+        const tone = value === 'developer' || value === 'admin' ? 'good' : value === 'manager' ? 'warn' : 'muted';
+        return `<span class="tag ${tone}">${escapeHtml(value || 'employee')}</span>`;
+      }
+
+      function accountTag(row) {
+        const status = String(row.activationStatus || '').toLowerCase();
+        if (!row.isActive || status === 'inactive') return '<span class="tag muted">inactive</span>';
+        if (status === 'pending') return '<span class="tag warn">pending</span>';
+        return '<span class="tag good">active</span>';
+      }
+
+      function cardTag(row) {
+        if (row.cardStatus === 'published' && row.publicUrl) {
+          return `<a href="${escapeAttribute(row.publicUrl)}" target="_blank" rel="noopener noreferrer">published</a>`;
+        }
+        return escapeHtml(row.cardStatus || 'none');
+      }
+
+      function showImportResult(html) {
+        document.getElementById('importResult').innerHTML = html;
+      }
+
+      async function api(url, options = {}) {
+        try {
+          const response = await fetch(url, {
+            method: options.method || 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: options.body ? JSON.stringify(options.body) : undefined,
+          });
+          const payload = await response.json().catch(() => null);
+          if (payload) {
+            return payload;
+          }
+          return { ok: false, error: { message: `요청 실패 (${response.status})` } };
+        } catch (error) {
+          return { ok: false, error: { message: '네트워크 오류가 발생했습니다.' } };
+        }
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = String(reader.result || '');
+            const commaIndex = dataUrl.indexOf(',');
+            resolve(commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl);
+          };
+          reader.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function formatDate(value) {
+        if (!value) return '-';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return new Intl.DateTimeFormat('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date);
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function escapeAttribute(value) {
+        return escapeHtml(value).replace(/`/g, '&#96;');
+      }
+    </script>
+  </body>
+</html>

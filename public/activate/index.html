@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Totallins Auth Activation</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --text: #11243d;
+        --muted: #60758f;
+        --line: #d9e3ef;
+        --accent: #0b6ef3;
+        --accent-dark: #0958c5;
+        --danger: #c84545;
+        --success: #1c8c5f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #ffffff 0%, var(--bg) 68%);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .topbar a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 32px;
+        box-shadow: 0 18px 50px rgba(17, 36, 61, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 30px;
+      }
+
+      p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .field input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        font-size: 15px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      button,
+      .ghost {
+        appearance: none;
+        border: 0;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      button {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      button:hover {
+        background: var(--accent-dark);
+      }
+
+      .ghost {
+        background: #eef4fb;
+        color: var(--text);
+      }
+
+      .message {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .message.is-error {
+        display: block;
+        background: #fff1f1;
+        color: var(--danger);
+      }
+
+      .message.is-success {
+        display: block;
+        background: #eefaf5;
+        color: var(--success);
+      }
+
+      .note {
+        margin-top: 24px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fbfdff;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="topbar">
+        <a href="https://hub.babymusic.co.kr/">허브로 돌아가기</a>
+        <a id="returnLink" href="https://hub.babymusic.co.kr/login">로그인 화면으로</a>
+      </div>
+
+      <section class="panel">
+        <h1>초기 계정 활성화</h1>
+        <p>엑셀 선등록으로 만들어진 계정은 최초 1회 이름 확인과 새 비밀번호 설정을 완료해야 로그인할 수 있습니다.</p>
+        <p>활성화가 끝나면 공통 세션이 바로 발급되고, 허브나 명함 서비스로 돌아가 계속 사용할 수 있습니다.</p>
+
+        <form id="activationForm" class="grid">
+          <div class="field">
+            <label for="employeeNo">사번</label>
+            <input id="employeeNo" name="employeeNo" autocomplete="username" />
+          </div>
+
+          <div class="field">
+            <label for="name">이름</label>
+            <input id="name" name="name" autocomplete="name" />
+          </div>
+
+          <div class="field">
+            <label for="tempPassword">임시 비밀번호</label>
+            <input id="tempPassword" name="tempPassword" type="password" autocomplete="one-time-code" />
+          </div>
+
+          <div class="field">
+            <label for="newPassword">새 비밀번호</label>
+            <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" />
+          </div>
+
+          <div class="field">
+            <label for="confirmPassword">새 비밀번호 확인</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" />
+          </div>
+
+          <div class="actions">
+            <button id="submitButton" type="submit">계정 활성화</button>
+            <a class="ghost" href="https://hub.babymusic.co.kr/login">허브 로그인으로</a>
+          </div>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="note">
+          임시 비밀번호를 모르면 관리자에게 재발급을 요청해 주세요. 활성화가 완료되면 이후에는 허브 로그인만으로 모든 서비스에 들어갈 수 있습니다.
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo') || 'https://hub.babymusic.co.kr/';
+      const employeeNo = params.get('employeeNo') || '';
+      const name = params.get('name') || '';
+
+      document.getElementById('employeeNo').value = employeeNo;
+      document.getElementById('name').value = name;
+      document.getElementById('returnLink').href = returnTo;
+
+      function showMessage(text, tone) {
+        const box = document.getElementById('message');
+        box.textContent = text;
+        box.className = `message is-${tone}`;
+      }
+
+      document.getElementById('activationForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = true;
+        submitButton.textContent = '활성화 중...';
+
+        const payload = {
+          employeeNo: document.getElementById('employeeNo').value.trim(),
+          name: document.getElementById('name').value.trim(),
+          tempPassword: document.getElementById('tempPassword').value,
+          newPassword: document.getElementById('newPassword').value,
+          confirmPassword: document.getElementById('confirmPassword').value,
+        };
+
+        try {
+          const response = await fetch('/api/auth/activate', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json().catch(() => null);
+          if (!result || !result.ok) {
+            showMessage(result?.error?.message || '초기 활성화에 실패했습니다.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = '계정 활성화';
+            return;
+          }
+
+          showMessage('계정 활성화가 완료되었습니다. 이동 중입니다...', 'success');
+          window.setTimeout(() => {
+            window.location.href = returnTo;
+          }, 900);
+        } catch (error) {
+          showMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+          submitButton.disabled = false;
+          submitButton.textContent = '계정 활성화';
+        }
+      });
+    </script>
+  </body>
+</html>

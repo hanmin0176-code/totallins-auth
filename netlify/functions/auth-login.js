@@ -90,7 +90,16 @@ exports.handler = async (event) => {
         return fail(401, 'INVALID_CREDENTIALS', 'Invalid employee number or password.', origin);
       }
 
-      return fail(403, 'ACCOUNT_SETUP_REQUIRED', 'Initial account activation is required.', origin);
+      return fail(
+        403,
+        'ACCOUNT_SETUP_REQUIRED',
+        'Initial account activation is required.',
+        origin,
+        {
+          employeeNo: employee.employee_no,
+          name: employee.name,
+        }
+      );
     }
 
     const valid = verifyPassword(password, employee.password_hash);
