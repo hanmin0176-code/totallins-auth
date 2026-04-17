@@ -55,9 +55,9 @@ exports.handler = async (event) => {
       password_hash: nextTempHash,
       temp_password_hash: nextTempHash,
       must_change_password: true,
-      activation_status: 'pending',
+      activation_status: 'active',
       is_active: true,
-      activated_at: null,
+      activated_at: target.activated_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
 

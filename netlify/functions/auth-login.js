@@ -92,8 +92,8 @@ exports.handler = async (event) => {
 
       return fail(
         403,
-        'ACCOUNT_SETUP_REQUIRED',
-        'Initial account activation is required.',
+        'PASSWORD_CHANGE_REQUIRED',
+        'Password change is required before continuing.',
         origin,
         {
           employeeNo: employee.employee_no,

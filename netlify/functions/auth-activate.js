@@ -84,7 +84,7 @@ exports.handler = async (event) => {
 
     const activationStatus = String(employee.activation_status || 'active').toLowerCase();
     if (activationStatus === 'active' && !employee.must_change_password) {
-      return fail(400, 'ACCOUNT_ALREADY_ACTIVE', 'This account is already active.', origin);
+      return fail(400, 'PASSWORD_CHANGE_NOT_REQUIRED', 'Password change is not required for this account.', origin);
     }
 
     if (normalizeName(employee.name) !== normalizeName(name)) {
@@ -144,6 +144,6 @@ exports.handler = async (event) => {
       origin
     );
   } catch (error) {
-    return fail(500, 'AUTH_ACTIVATE_FAILED', 'Account activation failed.', origin);
+    return fail(500, 'AUTH_ACTIVATE_FAILED', 'Password setup failed.', origin);
   }
 };

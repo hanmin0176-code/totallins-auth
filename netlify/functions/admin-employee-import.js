@@ -94,11 +94,11 @@ exports.handler = async (event) => {
             team_name: row.teamName || null,
             role_code: row.roleCode,
             is_active: nextIsActive,
-            activation_status: nextIsActive ? 'pending' : 'inactive',
+            activation_status: nextIsActive ? 'active' : 'inactive',
             must_change_password: true,
             password_hash: nextTempHash,
             temp_password_hash: nextTempHash,
-            activated_at: null,
+            activated_at: nextIsActive ? nowIso : null,
             updated_at: nowIso,
           });
           result.created += 1;
@@ -112,9 +112,7 @@ exports.handler = async (event) => {
         const patch = { name: row.name, team_name: row.teamName || null, role_code: row.roleCode, updated_at: nowIso };
         if (row.isActive != null) {
           patch.is_active = nextIsActive;
-          patch.activation_status = nextIsActive
-            ? (String(existing.activation_status || 'active').toLowerCase() === 'inactive' ? 'pending' : existing.activation_status || 'active')
-            : 'inactive';
+          patch.activation_status = nextIsActive ? 'active' : 'inactive';
         }
 
         const existingStatus = String(existing.activation_status || 'active').toLowerCase();
@@ -125,8 +123,8 @@ exports.handler = async (event) => {
           patch.password_hash = nextTempHash;
           patch.temp_password_hash = nextTempHash;
           patch.must_change_password = true;
-          patch.activation_status = nextIsActive ? 'pending' : 'inactive';
-          patch.activated_at = null;
+          patch.activation_status = nextIsActive ? 'active' : 'inactive';
+          patch.activated_at = nextIsActive ? (existing.activated_at || nowIso) : null;
           if (nextIsActive) {
             result.pendingPrepared += 1;
             result.generatedCredentials.push({ employeeNo: row.employeeNo, name: row.name, tempPassword: nextTempPassword, action: row.forceReset ? 'reset-and-reinvite' : 'pending-refresh' });

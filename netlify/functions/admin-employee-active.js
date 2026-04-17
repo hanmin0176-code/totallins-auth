@@ -13,9 +13,6 @@ const {
 
 function resolveActivationStatus(target, nextActive) {
   if (!nextActive) return 'inactive';
-  if (target.must_change_password || String(target.activation_status || '').toLowerCase() === 'pending' || !target.activated_at) {
-    return 'pending';
-  }
   return 'active';
 }
 
